@@ -1,3 +1,6 @@
+"Los datos de pruebas de las funciones son con "
+"la fuente, entrada y salida del ejercicio 1 de la guía 5"
+
 import math
 
 def getProbsEnt(msgEnt):
@@ -9,7 +12,7 @@ def getProbsEnt(msgEnt):
         probsEnt[alfEnt.index(elem)] += 1 / len(msgEnt)
     return probsEnt
 
-def calcEntropPriori(probs):
+def getEntropEnt(probs):
     entrop = 0
     for elem in probs:
         entrop += elem * math.log2(1 / elem)
@@ -69,6 +72,56 @@ def getProbsPost(matCanal, probsEnt, probsSal):
 
     return probsPost
 
+#P(Ai,Bj) = P(Ai/Bj)*P(Bj) = P(Bj/Ai)*P(Ai)
+def getMatSimult(matCanal,probsEnt):
+    
+    #Esta matriz suma 1 entre todos sus elementos xq 
+    #Cada posicion es un suceso posible de todos los
+    #que pueden ocurrir.
+
+    filas = len(matCanal)       # cantidad de entradas
+    cols = len(matCanal[0])     # cantidad de salidas
+    matSimult = [[0 for _ in range(cols)] for _ in range(filas)]
+
+    for i in range(filas):
+        for j in range(cols):
+            matSimult[i][j] = matCanal[i][j]*probsEnt[i]
+
+    return matSimult
+
+def getEntropPost(probsPost,probsSal):
+    
+    #Una entropía por cada salida
+
+    entropsPost = [0]*len(probsSal)
+
+    for j in range(len(probsPost[0])): #Cantidad de salidas
+        for i in range(len(probsPost)): #Cantidad de entradas
+            entropsPost[j] += probsPost[i][j]*math.log2(1/probsPost[i][j])
+
+    return entropsPost
+
+def getEntropPostMed(vecEntropsPost,probsSal): #creo que esta mal??? verificar dsps
+    
+    #Esta entropia posterior media se conoce como Equivocación, o ruido del canal
+
+    entropPostMed = 0
+
+    for i in range (len(vecEntropsPost)):
+        entropPostMed += vecEntropsPost[i]*probsSal[i]
+    return entropPostMed
+
+def getInfoMutua(entropPriori,entropPostMed):
+    return entropPriori - entropPostMed
+
+def getEntropAfin(matSimult):
+    entropAfin = 0
+
+    for i in range(len(matSimult)):
+        for j in range(len(matSimult[0])):
+            entropAfin += matSimult[i][j]*math.log2(1/matSimult[i][j])
+    return entropAfin
+
 def formatoFloats(lst):
     return [round(x, 5) for x in lst]
 
@@ -94,11 +147,35 @@ if __name__ == "__main__":
     print("\nProbabilidades de la entrada del canal:")
     print(formatoFloats(probsEnt))
 
+    entropEnt = getEntropEnt(probsEnt)
+    print("\nEntropia de entrada: " + str(entropEnt))
+
     probsSal = getProbSal(matCanal, probsEnt)
     print("\nProbabilidades de salida del canal:")
     print(formatoFloats(probsSal))
 
-    probsPost = getProbsPost(matCanal,probsEnt,probsSal)
+    matProbsPost = getProbsPost(matCanal,probsEnt,probsSal)
     print("\nProbabilidades a posteriori de la entada: ")
-    for fila in probsPost:
+    for fila in matProbsPost:
         print(formatoFloats(fila))
+
+    matProbsSimult = getMatSimult(matCanal,probsEnt)
+    print("\nProbabilidades de proceso simultaneo: ")
+    for fila in matProbsSimult:
+        print(formatoFloats(fila))
+
+    vecEntropsPost = getEntropPost(matProbsPost,probsSal)
+    print("\nEntropias a posteriori: ")
+    print(formatoFloats(vecEntropsPost))
+
+    entropPostMed = getEntropPostMed(vecEntropsPost,probsSal)
+    print("\nEntropia media a posteriori: ")
+    print(entropPostMed)
+
+    infoMutua = getInfoMutua(entropEnt,entropPostMed)
+    print("\nInformacion mutua del canal: ")
+    print(infoMutua)
+
+    entropAfin = getEntropAfin(matProbsSimult)
+    print("\nEntropia afin del canal: ")
+    print(entropAfin)
