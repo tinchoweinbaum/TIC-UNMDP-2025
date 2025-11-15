@@ -86,7 +86,6 @@ def getMatSimult(matCanal,probsEnt):
     for i in range(filas):
         for j in range(cols):
             matSimult[i][j] = matCanal[i][j]*probsEnt[i]
-
     return matSimult
 
 def getEntropPost(probsPost,probsSal):
@@ -122,8 +121,48 @@ def getEntropAfin(matSimult):
             entropAfin += matSimult[i][j]*math.log2(1/matSimult[i][j])
     return entropAfin
 
-def formatoFloats(lst):
-    return [round(x, 5) for x in lst]
+#Es sin ruido si existe 1 solo elemento !=0 por columna
+def checkSinRuido(matCanal):
+    i = 0
+    while( i < len(matCanal[0])):
+        cantAct = 0
+        for j in range(len(matCanal)):
+            #print("\nElemento actual : " + str(matCanal[j][i]))
+            if matCanal[j][i] != 0:
+                cantAct += 1
+                if cantAct > 1:
+                    return False
+        i += 1
+    return True
+
+#Es determinante si existe 1 solo elemento !=0 por fila
+def checkDeterminante(matCanal):
+    i = 0
+    while( i < len(matCanal[0])):
+        cantAct = 0
+        for j in range(len(matCanal)):
+            #print("\nElemento actual : " + str(matCanal[i][j]))
+            if matCanal[i][j] != 0:
+                cantAct += 1
+                if cantAct > 1:
+                    return False
+        i += 1
+    return True
+
+#producto matricial
+def getCanalComp(matA,matB):
+
+    if len(matA[0]) != len(matB): #no se pueden multiplicar las matrices
+        return -1
+    
+    matComp = [[0 for _ in range(len(matB[0]))] for _ in range(len(matA))]
+
+    for i in range(len(matComp)):          # filas de A
+        for j in range(len(matComp[0])):   # columnas de B
+            for k in range(len(matA[0])):  # recorre columnas de A / filas de B
+                matComp[i][j] += matA[i][k] * matB[k][j]
+    
+    return matComp
 
 if __name__ == "__main__":
     msgEnt = "abcacaabbcacaabcacaaabcaca"
@@ -145,28 +184,28 @@ if __name__ == "__main__":
 
     probsEnt = getProbsEnt(msgEnt)
     print("\nProbabilidades de la entrada del canal:")
-    print(formatoFloats(probsEnt))
+    print(probsEnt)
 
     entropEnt = getEntropEnt(probsEnt)
     print("\nEntropia de entrada: " + str(entropEnt))
 
     probsSal = getProbSal(matCanal, probsEnt)
     print("\nProbabilidades de salida del canal:")
-    print(formatoFloats(probsSal))
+    print(probsSal)
 
     matProbsPost = getProbsPost(matCanal,probsEnt,probsSal)
     print("\nProbabilidades a posteriori de la entada: ")
     for fila in matProbsPost:
-        print(formatoFloats(fila))
+        print(fila)
 
     matProbsSimult = getMatSimult(matCanal,probsEnt)
     print("\nProbabilidades de proceso simultaneo: ")
     for fila in matProbsSimult:
-        print(formatoFloats(fila))
+        print(fila)
 
     vecEntropsPost = getEntropPost(matProbsPost,probsSal)
     print("\nEntropias a posteriori: ")
-    print(formatoFloats(vecEntropsPost))
+    print(vecEntropsPost)
 
     entropPostMed = getEntropPostMed(vecEntropsPost,probsSal)
     print("\nEntropia media a posteriori: ")
@@ -179,3 +218,34 @@ if __name__ == "__main__":
     entropAfin = getEntropAfin(matProbsSimult)
     print("\nEntropia afin del canal: ")
     print(entropAfin)
+    print("\n")
+
+    print("Canal sin ruido" if checkSinRuido(matCanal) else "Canal con ruido")
+
+    print("Canal determinante" if checkDeterminante(matCanal) else "Canal no determinante")
+
+    print("================== GUIA 6 ================")
+
+    matA = [[0.4,0.6,0,0],
+            [0.0,0.0,0.5,0.5],
+            [0,0,0.7,0.3]]
+
+    matB = [[0.2,0.3,0.5],
+            [0,0,1],
+            [0,0,1]]
+
+    print("Canal A:")
+    for fila in matA:
+        print(fila)
+
+    print("Canal B:")
+    for fila in matB:
+        print(fila)
+
+    canalComp = getCanalComp(matA,matB)
+    print("Canal Compuesto: ")
+    if (isinstance(canalComp,int)):
+        print("No se pueden multiplicar las matrices")
+    else:
+        for fila in canalComp:
+            print(fila)
