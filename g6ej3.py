@@ -1,0 +1,1 @@
+import parcial2 as parcial
